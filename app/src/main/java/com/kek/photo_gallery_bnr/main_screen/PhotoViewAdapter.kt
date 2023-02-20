@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.kek.photo_gallery_bnr.Constances.IF_EMPTY_URL
 import com.kek.photo_gallery_bnr.R
 import com.kek.photo_gallery_bnr.api.GalleryItem
 import com.kek.photo_gallery_bnr.databinding.ListItemGalleryBinding
@@ -29,7 +30,13 @@ class PhotoViewAdapter(
 
     override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
         val item = galleryItems[position]
+
+        if (item.url.isNullOrBlank()){
+            item.url = IF_EMPTY_URL
+            holder.bind(item)
+        } else {
         holder.bind(item)
+        }
     }
 
     override fun getItemCount() = galleryItems.size
