@@ -1,5 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Photo_gallery_bnr</string>
     <string name="search">search</string>
     <string name="clear_search">clear search</string>
 </resources>
