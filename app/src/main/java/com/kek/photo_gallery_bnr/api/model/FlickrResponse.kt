@@ -1,4 +1,4 @@
-package com.kek.photo_gallery_bnr.api
+package com.kek.photo_gallery_bnr.api.model
 
 import com.squareup.moshi.JsonClass
 

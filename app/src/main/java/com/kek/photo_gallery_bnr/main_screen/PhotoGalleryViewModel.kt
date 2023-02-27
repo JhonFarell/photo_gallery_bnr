@@ -3,46 +3,66 @@ package com.kek.photo_gallery_bnr.main_screen
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kek.photo_gallery_bnr.Constances.LOG_TAG_PHOTO_VIEW_MODEL
 import com.kek.photo_gallery_bnr.api.GalleryItem
 import com.kek.photo_gallery_bnr.api.PhotoRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class PhotoGalleryViewModel: ViewModel() {
-    private val _galleryItems: MutableStateFlow<List<GalleryItem>> =
-        MutableStateFlow(emptyList())
-    val galleryItem: StateFlow<List<GalleryItem>>
-    get() = _galleryItems.asStateFlow()
+    private val _uiState: MutableStateFlow<PhotoGalleryUiState> =
+        MutableStateFlow(PhotoGalleryUiState())
+    val uiState: StateFlow<PhotoGalleryUiState>
+        get() = _uiState.asStateFlow()
+
+    private val _isLoading: MutableStateFlow<Boolean> =
+        MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean>
+        get() = _isLoading.asStateFlow()
+
+    private val photoRepository = PhotoRepository()
+    private val preferenceRepository = PreferenceRepository.get()
 
     init {
         viewModelScope.launch {
-            try {
-                val items = fetchGalleryItems("")
-                _galleryItems.value = items
-            } catch (ex: Exception) {
-                Log.d ("No connection", "No connection")
+            preferenceRepository.storedQuery.collectLatest {storedQuery ->
+                try {
+                    val items = fetchGalleryItems(storedQuery)
+                    _uiState.update {oldState ->
+                        oldState.copy(
+                            images = items,
+                            searchState = storedQuery
+                        )
+                    }
+                } catch (ex: Exception) {
+                    Log.d("No connection", "No connection")
+                }
             }
         }
     }
-
-    fun setQuery(query: String) {
-        viewModelScope.launch {
-            _galleryItems.value = fetchGalleryItems(query)
-            Log.d("VM","Query was set")
+        fun setQuery(query: String) {
+            viewModelScope.launch {
+                preferenceRepository.setStoredQuery(query)
+            }
         }
-    }
 
-    private suspend fun fetchGalleryItems(query: String): List<GalleryItem> {
+        private suspend fun fetchGalleryItems(query: String): List<GalleryItem> {
+            _isLoading.value = true
 
-        return if (query.isNotEmpty()) {
-            Log.d(LOG_TAG_PHOTO_VIEW_MODEL, "searchPhotos fun launched")
-            PhotoRepository().searchPhotos(query)
-        } else {
-            Log.d(LOG_TAG_PHOTO_VIEW_MODEL, "fetchPhotos fun launched")
-            PhotoRepository().fetchPhotos()
+            val response = if (query.isNotEmpty()) {
+                photoRepository.searchPhotos(query)
+            } else {
+                photoRepository.fetchPhotos()
+            }
+
+            _isLoading.value = false
+
+            return response
         }
-    }
+
 }
+
+data class PhotoGalleryUiState (
+    val images: List<GalleryItem> = listOf(),
+    val searchState: String = ""
+        )

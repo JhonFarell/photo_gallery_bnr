@@ -1,4 +1,4 @@
-package com.kek.photo_gallery_bnr
+package com.kek.photo_gallery_bnr.utils
 
 object Constances {
     const val API_KEY = "cd9aa56a3f01185560065032fbe25228"

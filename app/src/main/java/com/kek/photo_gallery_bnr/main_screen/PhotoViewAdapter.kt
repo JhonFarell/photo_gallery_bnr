@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
-import com.kek.photo_gallery_bnr.Constances.IF_EMPTY_URL
+import com.kek.photo_gallery_bnr.utils.Constances.IF_EMPTY_URL
 import com.kek.photo_gallery_bnr.R
 import com.kek.photo_gallery_bnr.api.GalleryItem
 import com.kek.photo_gallery_bnr.databinding.ListItemGalleryBinding

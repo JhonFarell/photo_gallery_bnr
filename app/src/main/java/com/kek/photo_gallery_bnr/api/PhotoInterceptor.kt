@@ -1,6 +1,6 @@
 package com.kek.photo_gallery_bnr.api
 
-import com.kek.photo_gallery_bnr.Constances.API_KEY
+import com.kek.photo_gallery_bnr.utils.Constances.API_KEY
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response

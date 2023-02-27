@@ -1,6 +1,6 @@
 package com.kek.photo_gallery_bnr.api
 
-import com.kek.photo_gallery_bnr.Constances.API_KEY
+import com.kek.photo_gallery_bnr.api.model.FlickrResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 
