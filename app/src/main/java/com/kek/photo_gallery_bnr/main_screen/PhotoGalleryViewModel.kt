@@ -46,6 +46,12 @@ class PhotoGalleryViewModel: ViewModel() {
             }
         }
 
+        fun toogleIsPoling(){
+            viewModelScope.launch {
+                preferenceRepository.setPoling(!uiState.value.isPoling)
+            }
+        }
+
         private suspend fun fetchGalleryItems(query: String): List<GalleryItem> {
             _isLoading.value = true
 
@@ -64,5 +70,6 @@ class PhotoGalleryViewModel: ViewModel() {
 
 data class PhotoGalleryUiState (
     val images: List<GalleryItem> = listOf(),
-    val searchState: String = ""
+    val searchState: String = "",
+    val isPoling: Boolean = false
         )

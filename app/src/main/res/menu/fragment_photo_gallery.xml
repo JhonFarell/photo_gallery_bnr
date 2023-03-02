@@ -15,4 +15,10 @@
         app:showAsAction="never"
         />
 
+    <item
+        android:id="@+id/menu_item_toogle_polling"
+        android:title="@string/start_polling"
+        app:showAsAction="ifRoom|withText"
+        />
+
 </menu>

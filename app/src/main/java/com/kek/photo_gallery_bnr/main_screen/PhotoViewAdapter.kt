@@ -1,5 +1,6 @@
 package com.kek.photo_gallery_bnr.main_screen
 
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -12,15 +13,17 @@ import com.kek.photo_gallery_bnr.databinding.ListItemGalleryBinding
 class PhotoViewHolder(
     private val binding: ListItemGalleryBinding
 ) : RecyclerView.ViewHolder(binding.root) {
-    fun bind(galleryItem: GalleryItem) {
+    fun bind(galleryItem: GalleryItem, onItemClicked: (Uri) -> Unit) {
         binding.itemImageView.load(galleryItem.url) {
             placeholder(R.drawable.bill_up_close)
         }
+        binding.root.setOnClickListener { onItemClicked(galleryItem.photoPageUri) }
     }
 }
 
 class PhotoViewAdapter(
-    private val galleryItems: List<GalleryItem>
+    private val galleryItems: List<GalleryItem>,
+    private val onItemClicked: (Uri) -> Unit
 ) : RecyclerView.Adapter<PhotoViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -33,9 +36,9 @@ class PhotoViewAdapter(
 
         if (item.url.isNullOrBlank()){
             item.url = IF_EMPTY_URL
-            holder.bind(item)
+            holder.bind(item, onItemClicked )
         } else {
-        holder.bind(item)
+        holder.bind(item, onItemClicked)
         }
     }
 

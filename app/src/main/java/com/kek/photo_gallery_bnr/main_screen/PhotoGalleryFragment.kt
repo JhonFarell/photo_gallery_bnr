@@ -1,6 +1,7 @@
 package com.kek.photo_gallery_bnr.main_screen
 
 import android.content.Context
+import android.content.Intent
 import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
@@ -14,10 +15,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.work.*
 import com.kek.photo_gallery_bnr.R
 import com.kek.photo_gallery_bnr.databinding.FragmentPhotoGalleryBinding
+import com.kek.photo_gallery_bnr.utils.Constances
 import com.kek.photo_gallery_bnr.utils.Constances.LOG_TAG_PHOTO_FRAGMENT
+import com.kek.photo_gallery_bnr.utils.Constances.POLL_WORK
+import com.kek.photo_gallery_bnr.utils.PollWorker
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 
 class PhotoGalleryFragment : Fragment() {
@@ -28,6 +34,7 @@ class PhotoGalleryFragment : Fragment() {
         }
 
     private var searchView: SearchView? = null
+    private var pollingMenuItem: MenuItem? = null
 
     private val photoGalleryViewModel: PhotoGalleryViewModel by viewModels()
 
@@ -52,8 +59,14 @@ class PhotoGalleryFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 photoGalleryViewModel.uiState.collect {
-                    binding.photoGrid.adapter = PhotoViewAdapter(it.images)
+                    binding.photoGrid.adapter = PhotoViewAdapter(
+                        it.images) {
+                        photoPageUri ->
+                        val intent = Intent(Intent.ACTION_VIEW, photoPageUri)
+                        startActivity(intent)
+                    }
                     searchView?.setQuery(it.searchState, false)
+                    updatePolingState(it.isPoling)
                 }
             }
         }
@@ -76,6 +89,30 @@ class PhotoGalleryFragment : Fragment() {
         }
     }
 
+    private fun updatePolingState(isPoling: Boolean) {
+        val toogleItemTitle = if (isPoling) {
+            R.string.stop_polling
+        } else R.string.start_polling
+
+        pollingMenuItem?.setTitle(toogleItemTitle)
+
+        if(isPoling) {
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.UNMETERED)
+                .build()
+            val periodicRequest = PeriodicWorkRequestBuilder<PollWorker>(15, TimeUnit.MINUTES)
+                .setConstraints(constraints)
+                .build()
+            WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
+                POLL_WORK,
+                ExistingPeriodicWorkPolicy.KEEP,
+                periodicRequest
+            )
+        } else {
+            WorkManager.getInstance(requireContext()).cancelUniqueWork(POLL_WORK)
+        }
+    }
+
 
     override fun onDestroy() {
         super.onDestroy()
@@ -88,6 +125,7 @@ class PhotoGalleryFragment : Fragment() {
 
         val searchItem: MenuItem = menu.findItem(R.id.menu_item_search)
         searchView = searchItem.actionView as? SearchView
+        pollingMenuItem = menu.findItem(R.id.menu_item_toogle_polling)
 
         searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -116,6 +154,10 @@ class PhotoGalleryFragment : Fragment() {
                 photoGalleryViewModel.setQuery("")
                 true
             }
+            R.id.menu_item_toogle_polling -> {
+                photoGalleryViewModel.toogleIsPoling()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -123,6 +165,7 @@ class PhotoGalleryFragment : Fragment() {
     override fun onDestroyOptionsMenu() {
         super.onDestroyOptionsMenu()
         searchView = null
+        pollingMenuItem = null
     }
 
 }
